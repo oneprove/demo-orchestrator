@@ -1,0 +1,97 @@
+version: "3"
+
+services:
+  redis:
+    image: redis:alpine
+    container_name: redis
+    restart: unless-stopped
+    volumes:
+      - redisdata:/data
+    ports:
+      - "6378:6379"
+    networks:
+      - veracity-demo-network
+  mongo:
+    image: "mongo"
+    container_name: "mongo"
+    restart: unless-stopped
+    volumes:
+      - mongodata:/data/db
+    ports:
+      - "27016:27017"
+    networks:
+      - veracity-demo-network
+  demo-webserver:
+    image: 993298895423.dkr.ecr.us-east-1.amazonaws.com/veracity/demo-webserver:latest
+    container_name: demo-webserver
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - veracity-demo-network
+  demo-backend:
+    image: 993298895423.dkr.ecr.us-east-1.amazonaws.com/veracity/demo-backend:latest
+    container_name: demo-backend
+    restart: unless-stopped
+    networks:
+      - veracity-demo-network
+    environment:
+      - MONGO_URL=mongodb://mongo:27017/veracity-demo
+      - SOCKET_REDIS_URL=redis://redis:6379/2
+      - REDIS_URL=redis://redis:6379/0
+      - NODE_ENV=developmment
+      - PORT=7645
+      - JWT_PRIVATE_KEY=${JWT_PRIVATE_KEY}
+      - JWT_PUBLIC_KEY=${JWT_PUBLIC_KEY}
+      - IS_OFFLINE=true
+      - CAMERA_URL=http://demo.veracityprotocol.test/backend/camera
+  demo-camera-controller:
+    image: 993298895423.dkr.ecr.us-east-1.amazonaws.com/veracity/demo-camera-controller:latest
+    container_name: demo-camera-controller
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    networks:
+      - veracity-demo-network
+    environment:
+      - IMAGE_BASE_URL=http://demo.veracityprotocol.test/backend/camera
+      - IMAGES_PATH=/worker/images
+      - CAMERA_VERIFICATION_ID=XX
+      - CAMERA_PROTECTION_ID=XX
+      - FAKE_CAMERAS=true
+    volumes:
+      - camera-controller-data:/worker/images
+  demo-identification-worker:
+    image: 993298895423.dkr.ecr.us-east-1.amazonaws.com/veracity/demo-identification-worker:latest
+    container_name: demo-identification-worker
+    restart: unless-stopped
+    command: /worker/venv/bin/celery -A src.celery worker --loglevel=INFO -Q com.veracity.demo.identification -c 1 -P solo
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - USE_CPU=true
+    networks:
+      - veracity-demo-network
+  demo-authenticity-worker:
+    image: 993298895423.dkr.ecr.us-east-1.amazonaws.com/veracity/demo-authenticity-worker:latest
+    container_name: demo-authenticity-worker
+    restart: unless-stopped
+    command: /worker/venv/bin/celery -A src.celery worker --loglevel=INFO -Q com.veracity.demo.authenticity -c 1 -P solo
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - USE_CPU=true
+      - CUDA_VISIBLE_DEVICES=""
+    networks:
+      - veracity-demo-network
+
+volumes:
+  mongodata:
+    driver: "local"
+  redisdata:
+    driver: "local"
+  camera-controller-data:
+    driver: "local"
+
+networks:
+  veracity-demo-network:
+    driver: bridge
