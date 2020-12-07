@@ -57,9 +57,9 @@ services:
     environment:
       - IMAGE_BASE_URL=http://demo.veracityprotocol.test/backend/camera
       - IMAGES_PATH=/worker/images
-      - CAMERA_VERIFICATION_ID=XX
-      - CAMERA_PROTECTION_ID=XX
-      - FAKE_CAMERAS=true
+      - CAMERA_VERIFICATION_ID=${CAMERA_VERIFICATION_ID}
+      - CAMERA_PROTECTION_ID=${CAMERA_PROTECTION_ID}
+      # - FAKE_CAMERAS=true
     volumes:
       - camera-controller-data:/worker/images
   demo-identification-worker:
@@ -69,7 +69,7 @@ services:
     command: /worker/venv/bin/celery -A src.celery worker --loglevel=INFO -Q com.veracity.demo.identification -c 1 -P solo
     environment:
       - REDIS_URL=redis://redis:6379/0
-      - USE_CPU=true
+      # - USE_CPU=true
     networks:
       - veracity-demo-network
   demo-authenticity-worker:
@@ -79,8 +79,8 @@ services:
     command: /worker/venv/bin/celery -A src.celery worker --loglevel=INFO -Q com.veracity.demo.authenticity -c 1 -P solo
     environment:
       - REDIS_URL=redis://redis:6379/0
-      - USE_CPU=true
-      - CUDA_VISIBLE_DEVICES=""
+      # - USE_CPU=true
+      # - CUDA_VISIBLE_DEVICES=""
     networks:
       - veracity-demo-network
 
