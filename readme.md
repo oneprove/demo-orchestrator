@@ -6,10 +6,10 @@
 `mkdir -p /tmp/jwt && ssh-keygen -t rsa -b 4096 -m PEM -f /tmp/jwt/jwt.key -N "" <<< y >/dev/null && openssl rsa -in /tmp/jwt/jwt.key -pubout -outform PEM -out /tmp/jwt/jwt.key.pub`
 
 ## Copy private key to clipboard and paste it to the .env file
-`cat /tmp/jwt/jwt.key | base64 | awk '{print "JWT_PRIVATE_KEY="$1}'`
+`cat /tmp/jwt/jwt.key | base64 | awk 'NF {sub(/\r/, ""); printf "%s\\n",$0;}' | sed 's/[\][n]//g'`
 
 ## Copy public key to clipboard and paste it to the .env file
-`cat /tmp/jwt/jwt.key.pub | base64 | awk '{print "JWT_PUBLIC_KEY="$1}'`
+`cat /tmp/jwt/jwt.key.pub | base64 | awk 'NF {sub(/\r/, ""); printf "%s\\n",$0;}' | sed 's/[\][n]//g'`
 
 # ETC Hosts
 
