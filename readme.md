@@ -1,5 +1,13 @@
 # VeracityProtocol - Identification
 
+# Run with GPU
+
+`docker-compose up`
+
+# Run without GPU
+
+`docker-compose -f docker-compose-nogpu.yml up`
+
 # Generate the JWT Signig keys
 
 ## Generate the Private/Public Key Pair
@@ -16,3 +24,7 @@
 add following to /etc/hosts
 
 `127.0.0.1 demo.veracityprotocol.test`
+
+# Login to ECR
+
+`aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 993298895423.dkr.ecr.us-east-1.amazonaws.com`
