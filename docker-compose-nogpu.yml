@@ -28,6 +28,7 @@ services:
     ports:
       - "80:80"
       - "443:443"
+    hostname: demo.veracityprotocol.test
     networks:
       veracity-demo-network:
         aliases:
@@ -49,7 +50,6 @@ services:
       - IS_OFFLINE=true
       - CAMERA_URL=http://demo.veracityprotocol.test/backend/camera
   demo-camera-controller:
-    runtime: nvidia
     image: 993298895423.dkr.ecr.us-east-1.amazonaws.com/veracity/demo-camera-controller:latest
     container_name: demo-camera-controller
     restart: unless-stopped
@@ -62,36 +62,28 @@ services:
       - IMAGES_PATH=/worker/images
       - CAMERA_VERIFICATION_ID=${CAMERA_VERIFICATION_ID}
       - CAMERA_PROTECTION_ID=${CAMERA_PROTECTION_ID}
-      - NVIDIA_VISIBLE_DEVICES=all
-      - NVIDIA_DRIVER_CAPABILITIES=all             
-      # - FAKE_CAMERAS=true
+      - FAKE_CAMERAS=true
     volumes:
       - camera-controller-data:/worker/images
   demo-identification-worker:
-    runtime: nvidia
     image: 993298895423.dkr.ecr.us-east-1.amazonaws.com/veracity/demo-identification-worker:latest
     container_name: demo-identification-worker
     restart: unless-stopped
     command: /worker/venv/bin/celery -A src.celery worker --loglevel=INFO -Q com.veracity.demo.identification -c 1 -P solo
     environment:
       - REDIS_URL=redis://redis:6379/0
-      - NVIDIA_VISIBLE_DEVICES=all
-      - NVIDIA_DRIVER_CAPABILITIES=all       
-      # - USE_CPU=true
+      - USE_CPU=true
     networks:
       - veracity-demo-network
   demo-authenticity-worker:
-    runtime: nvidia
     image: 993298895423.dkr.ecr.us-east-1.amazonaws.com/veracity/demo-authenticity-worker:latest
     container_name: demo-authenticity-worker
     restart: unless-stopped
     command: /worker/venv/bin/celery -A src.celery worker --loglevel=INFO -Q com.veracity.demo.authenticity -c 1 -P solo
     environment:
-      - REDIS_URL=redis://redis:6379/0
-      - NVIDIA_VISIBLE_DEVICES=all
-      - NVIDIA_DRIVER_CAPABILITIES=all 
-      # - USE_CPU=true
-      # - CUDA_VISIBLE_DEVICES=""
+      - REDIS_URL=redis://redis:6379/0     
+      - USE_CPU=true
+      - CUDA_VISIBLE_DEVICES=""
     networks:
       - veracity-demo-network
 
