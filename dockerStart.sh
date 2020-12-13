@@ -67,9 +67,10 @@ fi
 
 mkdir -p $LOG_FOLDER
 if id "demo" &>/dev/null; then
-    chown demo:demo $LOG_FOLDER
+    log "Changing ownership of the log folder"
+    chown -R demo:demo $LOG_FOLDER
 else
-    echo 'user demo was not found'
+    log 'user demo was not found'
 fi
 
 if [ -z "$CONFIG" ]; then
