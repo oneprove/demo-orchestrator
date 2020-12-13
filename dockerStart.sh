@@ -66,6 +66,11 @@ if [ -z "$LOG_FOLDER" ]; then
 fi
 
 mkdir -p $LOG_FOLDER
+if id "demo" &>/dev/null; then
+    chown demo:demo $LOG_FOLDER
+else
+    echo 'user demo was not found'
+fi
 
 if [ -z "$CONFIG" ]; then
     log "You must specify CONFIG parameter using like '-c /home/demo/Deskotp/config.ini'"
@@ -73,7 +78,7 @@ if [ -z "$CONFIG" ]; then
 fi
 
 if [ -z "$ENV_FILE" ]; then
-    log "You must specify ENV_FILE parameter using like '-p /app/orchestrator/.env'"
+    log "You must specify ENV_FILE parameter using like '-e /app/orchestrator/.env'"
     exit 1
 fi
 
