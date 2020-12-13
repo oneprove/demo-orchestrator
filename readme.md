@@ -27,4 +27,4 @@ add following to /etc/hosts
 
 # Login to ECR
 
-`aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 993298895423.dkr.ecr.us-east-1.amazonaws.com`
+`aws --profile veracity-serverless ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 993298895423.dkr.ecr.us-east-1.amazonaws.com`

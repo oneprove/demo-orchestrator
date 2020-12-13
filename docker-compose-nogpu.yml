@@ -32,7 +32,7 @@ services:
     networks:
       veracity-demo-network:
         aliases:
-            - demo.veracityprotocol.test
+          - demo.veracityprotocol.test
   demo-backend:
     image: 993298895423.dkr.ecr.us-east-1.amazonaws.com/veracity/demo-backend:latest
     container_name: demo-backend
@@ -71,8 +71,14 @@ services:
     restart: unless-stopped
     command: /worker/venv/bin/celery -A src.celery worker --loglevel=INFO -Q com.veracity.demo.identification -c 1 -P solo
     environment:
+      - KPS_FOLDER=/worker/data/kps
+      - FEATURES_FOLDER=/worker/data/features
+      - LOG_FOLDER=/worker/logs
       - REDIS_URL=redis://redis:6379/0
       - USE_CPU=true
+    volumes:
+      - demo-identification-worker-data:/worker/data
+      - demo-identification-worker-logs:/worker/logs
     networks:
       - veracity-demo-network
   demo-authenticity-worker:
@@ -81,7 +87,7 @@ services:
     restart: unless-stopped
     command: /worker/venv/bin/celery -A src.celery worker --loglevel=INFO -Q com.veracity.demo.authenticity -c 1 -P solo
     environment:
-      - REDIS_URL=redis://redis:6379/0     
+      - REDIS_URL=redis://redis:6379/0
       - USE_CPU=true
       - CUDA_VISIBLE_DEVICES=""
     networks:
@@ -93,6 +99,10 @@ volumes:
   redisdata:
     driver: "local"
   camera-controller-data:
+    driver: "local"
+  demo-identification-worker-data:
+    driver: "local"
+  demo-identification-worker-logs:
     driver: "local"
 
 networks:
