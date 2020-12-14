@@ -1,0 +1,9 @@
+# Based on https://askubuntu.com/questions/1151080/how-do-i-run-a-script-as-sudo-at-boot-time-on-ubuntu-18-04-server
+[Unit]
+Description=Veracity
+
+[Service]
+ExecStart=/home/controller/apps/demo-orchestrator/dockerStart.sh -l /home/demo/Desktop/logs -c /home/demo/Desktop/config.ini -e /home/controller/apps/demo-orchestrator/.env -d /home/controller/apps/demo-orchestrator/docker-compose.yml
+
+[Install]
+WantedBy=multi-user.target

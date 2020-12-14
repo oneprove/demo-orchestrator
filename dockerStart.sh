@@ -5,7 +5,14 @@ log() {
     echo "$1" >>"$LOG_FOLDER/main.log"
 }
 
-check_docker_health() {    
+sympling_logs() {
+    log "Sympling logs for $1."
+    chown demo:demo $(docker inspect -f {{.LogPath}} $1)
+    ln -sfn $(docker inspect -f {{.LogPath}} $1) "$LOG_FOLDER/$DATE_WITH_TIME/$1.log"
+    ln -sfn $(docker inspect -f {{.LogPath}} $1) "$LOG_FOLDER/$1.log"
+}
+
+check_docker_health() {
     log "Checking health of $1."
     if [ "$(docker container inspect -f '{{.State.Status}}' $1)" == "running" ]; then
         log "$1 is running."
@@ -115,3 +122,18 @@ check_docker_health "demo-backend"
 check_docker_health "demo-camera-controller"
 check_docker_health "demo-identification-worker"
 check_docker_health "demo-authenticity-worker"
+
+if id "demo" &>/dev/null; then
+    DATE_WITH_TIME=$(date "+%Y%m%d-%H%M%S")
+    mkdir -p $LOG_FOLDER/$DATE_WITH_TIME
+    sympling_logs "redis"
+    sympling_logs "mongo"
+    sympling_logs "demo-webserver"
+    sympling_logs "demo-backend"
+    sympling_logs "demo-camera-controller"
+    sympling_logs "demo-identification-worker"
+    sympling_logs "demo-authenticity-worker"
+    chown -R demo:demo $LOG_FOLDER
+else
+    log 'user demo was not found'
+fi
