@@ -5,10 +5,14 @@ log() {
     echo "$1" >>"$LOG_FOLDER/main.log"
 }
 
-sympling_logs() {
-    log "Sympling logs for $1."
+keep_logs() {
+    log "Copying logs for $1."
+    cp -f $(docker inspect -f {{.LogPath}} $1) "$LOG_FOLDER/$DATE_WITH_TIME/$1.log" 2>/dev/null || :
+}
+
+symlink_logs() {
+    log "Symlinking logs for $1."
     chown demo:demo $(docker inspect -f {{.LogPath}} $1)
-    ln -sfn $(docker inspect -f {{.LogPath}} $1) "$LOG_FOLDER/$DATE_WITH_TIME/$1.log"
     ln -sfn $(docker inspect -f {{.LogPath}} $1) "$LOG_FOLDER/$1.log"
 }
 
@@ -111,6 +115,21 @@ else
     log "Dockers automatic pulling is disable. Dockers will be starting now."
 fi
 
+if id "demo" &>/dev/null; then
+    DATE_WITH_TIME=$(date "+%Y%m%d-%H%M%S")
+    mkdir -p $LOG_FOLDER/$DATE_WITH_TIME
+    keep_logs "redis"
+    keep_logs "mongo"
+    keep_logs "demo-webserver"
+    keep_logs "demo-backend"
+    keep_logs "demo-camera-controller"
+    keep_logs "demo-identification-worker"
+    keep_logs "demo-authenticity-worker"
+    chown -R demo:demo $LOG_FOLDER
+else
+    log 'user demo was not found'
+fi
+
 docker-compose -p veracity-demo --env-file=${ENV_FILE} --log-level CRITICAL -f $DOCKER_COMPOSE_FILE down
 docker-compose -p veracity-demo --env-file=${ENV_FILE} --log-level CRITICAL -f $DOCKER_COMPOSE_FILE up -d --force-recreate
 log "Dockers were started."
@@ -124,15 +143,13 @@ check_docker_health "demo-identification-worker"
 check_docker_health "demo-authenticity-worker"
 
 if id "demo" &>/dev/null; then
-    DATE_WITH_TIME=$(date "+%Y%m%d-%H%M%S")
-    mkdir -p $LOG_FOLDER/$DATE_WITH_TIME
-    sympling_logs "redis"
-    sympling_logs "mongo"
-    sympling_logs "demo-webserver"
-    sympling_logs "demo-backend"
-    sympling_logs "demo-camera-controller"
-    sympling_logs "demo-identification-worker"
-    sympling_logs "demo-authenticity-worker"
+    symlink_logs "redis"
+    symlink_logs "mongo"
+    symlink_logs "demo-webserver"
+    symlink_logs "demo-backend"
+    symlink_logs "demo-camera-controller"
+    symlink_logs "demo-identification-worker"
+    symlink_logs "demo-authenticity-worker"
     chown -R demo:demo $LOG_FOLDER
 else
     log 'user demo was not found'
